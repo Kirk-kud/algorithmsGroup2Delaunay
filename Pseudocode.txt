@@ -1,0 +1,56 @@
+function BowyerWatson(points: array of Points):
+    // Step 1: Initialize with super triangle
+    1.1. Find bounding box of all points (min_x, max_x, min_y, max_y)
+    1.2. Calculate super triangle vertices that contain all points
+        super_triangle = new Triangle(
+            Point(midX - 20*dmax, midY - dmax),
+            Point(midX, midY + 20*dmax),
+            Point(midX + 20*dmax, midY - dmax)
+        )
+    1.3. triangulation = [super_triangle]
+
+    // Step 2: Add points one by one
+    for each point in points:
+        // Step 2.1: Find all triangles whose circumcircle contains point
+        bad_triangles = empty array
+        for each triangle in triangulation:
+            if triangle.containsPoint(point):
+                add triangle to bad_triangles
+
+        // Step 2.2: Find the boundary of the polygonal hole
+        boundary_edges = empty set
+        for each triangle in bad_triangles:
+            for each edge in triangle.getEdges():
+                if edge appears only once in all bad_triangles:
+                    add edge to boundary_edges
+
+        // Step 2.3: Remove bad triangles
+        remove all triangles in bad_triangles from triangulation
+
+        // Step 2.4: Re-triangulate the polygonal hole
+        for each edge in boundary_edges:
+            new_triangle = new Triangle(point, edge.p1, edge.p2)
+            add new_triangle to triangulation
+
+    // Step 3: Clean up
+    3.1. Find vertices of super triangle
+    3.2. Remove all triangles that share a vertex with super triangle
+    3.3. Return remaining triangles
+
+## Helper Functions
+
+function calculateCircumcenter(p1, p2, p3):
+    // Using matrix determinant method:
+    D = 2(x1(y2 - y3) + x2(y3 - y1) + x3(y1 - y2))
+    
+    Ux = ((x1² + y1²)(y2 - y3) + (x2² + y2²)(y3 - y1) + (x3² + y3²)(y1 - y2)) / D
+    Uy = ((x1² + y1²)(x3 - x2) + (x2² + y2²)(x1 - x3) + (x3² + y3²)(x2 - x1)) / D
+    
+    return Point(Ux, Uy)
+
+function isInCircumcircle(point, triangle):
+    dist = distance(point, triangle.circumcenter)
+    return dist < triangle.circumradius
+
+function distance(p1, p2):
+    return sqrt((p2.x - p1.x)² + (p2.y - p1.y)²)
